@@ -35,7 +35,7 @@ async fn proxy_data(client: &mut TcpStream, server: &mut TcpStream) -> Result<()
 
 async fn handle_client(
     mut client: TcpStream,
-    allowed_hosts: Arc<Vec<&str>>,
+    allowed_hosts: Arc<Vec<String>>,
 ) -> Result<(), Box<dyn Error>> {
     let mut buffer = vec![0; 1024];
     let n = client.read(&mut buffer).await?;
@@ -43,7 +43,7 @@ async fn handle_client(
     match parse_connect_request(&String::from_utf8_lossy(&buffer[..n])) {
         Ok(host) => {
             let (hostname, _port) = host.split_once(':').unwrap();
-            if !allowed_hosts.contains(&hostname) {
+            if !allowed_hosts.contains(&hostname.to_string()) {
                 println!("Disallowed hostname detected. {host:?}");
                 std::process::exit(1);
             }
@@ -66,10 +66,15 @@ async fn handle_client(
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    const ALLOWED_REMOTE: &str = std::env!("ALLOWED_REMOTE");
-    const PORT: &str = std::env!("PORT");
-    const ALLOWED_HOSTS: &str = std::env!("ALLOWED_HOSTS");
-    let allowed_hosts: Arc<Vec<&str>> = Arc::new(ALLOWED_HOSTS.split_terminator(',').collect());
+    let ALLOWED_REMOTE: &str = &std::env::var("ALLOWED_REMOTE").unwrap();
+    let PORT: &str = &std::env::var("PORT").unwrap();
+    let ALLOWED_HOSTS: String = std::env::var("ALLOWED_HOSTS").unwrap();
+    let allowed_hosts: Arc<Vec<String>> = Arc::new(
+        ALLOWED_HOSTS
+            .split_terminator(',')
+            .map(|x| x.to_string())
+            .collect(),
+    );
     let allowed_remote = Ipv4Addr::from_str(ALLOWED_REMOTE).unwrap();
 
     let listener = TcpListener::bind(format!("127.0.0.1:{PORT}")).await?;
