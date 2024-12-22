@@ -1,0 +1,5 @@
+/target
+.direnv/
+.env
+/.devenv
+/.devenv.flake.nix
