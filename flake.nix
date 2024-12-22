@@ -34,8 +34,8 @@
                 description = "Allowed Singular Remote IP. example: 127.0.0.1";
               };
               port = lib.mkOption {
-                type = lib.types.int;
-                default = 8080;
+                type = lib.types.str;
+                default = "8080";
                 description = "Service Port";
               };
               hosts = lib.mkOption {
