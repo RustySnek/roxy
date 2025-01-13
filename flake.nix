@@ -28,7 +28,6 @@
           {
             options.services.roxy = {
               enable = lib.mkEnableOption "roxy";
-
               remote = lib.mkOption {
                 type = lib.types.str;
                 description = "Allowed Singular Remote IP. example: 127.0.0.1";
@@ -37,6 +36,15 @@
                 type = lib.types.str;
                 default = "8080";
                 description = "Service Port";
+              };
+              remote-port = lib.mkOption {
+                type = lib.types.str;
+                default = "4445";
+                description = "Remote machine port";
+              };
+              remote-user = lib.mkOption {
+                type = lib.types.str;
+                description = "Remote user";
               };
               hosts = lib.mkOption {
                 type = lib.types.listOf lib.types.str;
@@ -56,6 +64,20 @@
               };
               users.groups.${user} = { };
               systemd.services = {
+                roxy-tunnel = {
+                  wantedBy = [ "multi-user.target" ];
+                  requires = [ "roxy.service" ];
+                  after = [ "roxy.service" ];
+                  description = "Start up roxy ssh reverse tunnel";
+                  serviceConfig = {
+                    User = user;
+                    Restart = user;
+                  };
+                  script = ''
+                    ${pkgs.openssh}/bin/ssh -v -N -R ${cfg.remote-port}:127.0.0.1:${cfg.port} ${cfg.remote-user}@${cfg.remote}
+                  '';
+                };
+
                 roxy = {
                   description = "Start up https proxy";
                   environment = {
