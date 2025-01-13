@@ -74,7 +74,7 @@
                     Restart = user;
                   };
                   script = ''
-                    ${pkgs.openssh}/bin/ssh -v -N -R ${cfg.remote-port}:127.0.0.1:${cfg.port} ${cfg.remote-user}@${cfg.remote}
+                    ${pkgs.${system}.openssh}/bin/ssh -v -N -R ${cfg.remote-port}:127.0.0.1:${cfg.port} ${cfg.remote-user}@${cfg.remote}
                   '';
                 };
 
