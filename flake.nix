@@ -78,6 +78,12 @@
                   script = ''
                     mkdir -p /var/lib/${user}/.ssh
                     chmod 700 /var/lib/${user}/.ssh
+                    for key in id_ecdsa id_ecdsa_sk id_ed25519 id_ed25519_sk id_xmss; do
+                      if [ ! -f /var/lib/${user}/.ssh/$key ]; then
+                        ${pkgs.${system}.openssh}/bin/ssh-keygen -t ecdsa -f /var/lib/${user}/.ssh/$key -N "" -C "roxy-tunnel"
+                      fi
+                        chmod 600 /var/lib/${user}/.ssh/$key
+                      done
                     touch /var/lib/${user}/.ssh/known_hosts
                     chmod 600 /var/lib/${user}/.ssh/known_hosts
                     ${pkgs.${system}.openssh}/bin/ssh-keyscan -H ${cfg.remote} >> /var/lib/${user}/.ssh/known_hosts
