@@ -69,6 +69,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let ALLOWED_REMOTE: &str = &std::env::var("ALLOWED_REMOTE").unwrap();
     let PORT: &str = &std::env::var("PORT").unwrap();
     let ALLOWED_HOSTS: String = std::env::var("ALLOWED_HOSTS").unwrap();
+
     let allowed_hosts: Arc<Vec<String>> = Arc::new(
         ALLOWED_HOSTS
             .split_terminator(',')
@@ -78,7 +79,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let allowed_remote = Ipv4Addr::from_str(ALLOWED_REMOTE).unwrap();
 
     let listener = TcpListener::bind(format!("127.0.0.1:{PORT}")).await?;
-    let semaphore = Semaphore::new(16);
+
+    let semaphore = Arc::new(Semaphore::new(16));
 
     println!(
         "Proxy server listening on 127.0.0.1:{PORT}\nAllowed remote: {allowed_remote:?}\nAllowed hosts: {allowed_hosts:?}"
@@ -90,13 +92,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
         };
         println!("New client connection from {}", addr);
         let hosts = allowed_hosts.clone();
-        let _permit = semaphore.acquire().await.unwrap();
+        let sem = Arc::clone(&semaphore);
         tokio::spawn(async move {
+            let _permit = sem.acquire().await.unwrap();
             if let Err(e) = handle_client(client, hosts).await {
                 println!("Error handling client: {:?}", e);
             }
         });
     }
-
     Ok(())
 }
