@@ -59,11 +59,30 @@
               users.users.${user} = {
                 isSystemUser = true;
                 group = user;
-                home = "/var/empty";
-                shell = "${pkgs.${system}.util-linux}/bin/nologin";
+                createHome = true;
+                home = "/var/lib/${user}";
+                packages = [ pkgs.${system}.openssh ];
+                shell = "${pkgs.${system}.bash}/bin/bash";
               };
               users.groups.${user} = { };
               systemd.services = {
+                roxy-tunnel-setup = {
+                  description = "Setup SSH directory for roxy tunnel";
+                  before = [ "roxy-tunnel.service" ];
+                  wantedBy = [ "roxy-tunnel.service" ];
+                  serviceConfig = {
+                    Type = "oneshot";
+                    RemainAfterExit = "yes";
+                    User = user;
+                  };
+                  script = ''
+                    mkdir -p /var/lib/${user}/.ssh
+                    chmod 700 /var/lib/${user}/.ssh
+                    touch /var/lib/${user}/.ssh/known_hosts
+                    chmod 600 /var/lib/${user}/.ssh/known_hosts
+                    ${pkgs.${system}.openssh}/bin/ssh-keyscan -H ${cfg.remote} >> /var/lib/${user}/.ssh/known_hosts
+                  '';
+                };
                 roxy-tunnel = {
                   wantedBy = [ "multi-user.target" ];
                   bindsTo = [ "roxy.service" ];
