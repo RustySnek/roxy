@@ -66,12 +66,12 @@
               systemd.services = {
                 roxy-tunnel = {
                   wantedBy = [ "multi-user.target" ];
-                  requires = [ "roxy.service" ];
+                  bindsTo = [ "roxy.service" ];
                   after = [ "roxy.service" ];
                   description = "Start up roxy ssh reverse tunnel";
                   serviceConfig = {
                     User = user;
-                    Restart = user;
+                    Group = user;
                   };
                   script = ''
                     ${pkgs.${system}.openssh}/bin/ssh -v -N -R ${cfg.remote-port}:127.0.0.1:${cfg.port} ${cfg.remote-user}@${cfg.remote}
