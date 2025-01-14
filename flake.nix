@@ -106,7 +106,7 @@
                 roxy = {
                   description = "Start up https proxy";
                   environment = {
-                    ALLOWED_REMOTE = cfg.remote;
+                    ALLOWED_REMOTE = "127.0.0.1";
                     PORT = cfg.port;
                     ALLOWED_HOSTS = lib.strings.concatStringsSep "," cfg.hosts;
                   };
